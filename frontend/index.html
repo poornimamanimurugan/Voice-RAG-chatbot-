@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- Meta tags for proper rendering -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAG Voice Chatbot</title>
+    
+    <style>
+        /* ============== GLOBAL STYLES ============== */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        /* ============== MAIN DEMO PAGE ============== */
+        .demo-container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .demo-header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .demo-header h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .demo-header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .demo-section {
+            margin-bottom: 25px;
+        }
+
+        .demo-section h2 {
+            color: #667eea;
+            font-size: 16px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .document-form {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .form-group {
+            margin-bottom: 12px;
+        }
+
+        .form-group label {
+            display: block;
+            color: #333;
+            font-weight: 500;
+            margin-bottom: 5px;
+            font-size: 13px;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            resize: vertical;
+        }
+
+        .form-group textarea {
+            min-height: 80px;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 13px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-secondary:hover {
+            background: #e0e0e0;
+        }
+
+        .status-message {
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 12px;
+        }
+
+        .status-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .doc-list {
+            max-height: 300px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+        }
+
+        .doc-item {
+            padding: 10px;
+            background: #f9f9f9;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            font-size: 12px;
+        }
+
+        .doc-item-content {
+            flex: 1;
+            word-break: break-word;
+        }
+
+        .doc-item-source {
+            color: #667eea;
+            font-weight: 500;
+            display: block;
+            margin-bottom: 3px;
+        }
+
+        .doc-item-text {
+            color: #666;
+            max-height: 60px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .doc-item-delete {
+            background: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            margin-left: 10px;
+            white-space: nowrap;
+        }
+
+        .doc-item-delete:hover {
+            background: #ff5252;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #667eea;
+            border-radius: 50%;
+            animation: pulse 1.5s ease-in-out infinite;
+            margin-left: 5px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        /* ============== CHATBOT WIDGET STYLES ============== */
+        /* Container for the chatbot widget positioned at bottom-right */
+        .chatbot-widget {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 380px;
+            height: 500px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 5px 40px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            z-index: 9999;
+            font-family: inherit;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        .chatbot-widget.minimized {
+            display: none;
+        }
+
+        /* Floating bubble icon when widget is minimized */
+        .chatbot-bubble {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-radius: 50%;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 9999;
+            font-size: 28px;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            color: white;
+        }
+
+        .chatbot-bubble:hover {
+            transform: scale(1.1);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+        }
+
+        .chatbot-bubble.hidden {
+            display: none;
+        }
+
+        /* Slide in animation when widget appears */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Header of the chatbot widget */
+        .chatbot-header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px 12px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .chatbot-header h3 {
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .chatbot-header p {
+            font-size: 12px;
+            opacity: 0.9;
+            margin: 0;
+        }
+
+        /* Close button for the widget */
+        .chatbot-close {
+            background: rgba(255, 255, 255, 0.3);
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 24px;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .chatbot-close:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Messages container - scrollable area for chat history */
+        .chatbot-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            background: #fafafa;
+        }
+
+        /* Individual message styling */
+        .message {
+            display: flex;
+            gap: 10px;
+            animation: messageAppear 0.3s ease-out;
+        }
+
+        @keyframes messageAppear {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* User message (right-aligned) */
+        .message.user {
+            justify-content: flex-end;
+        }
+
+        .message.user .message-bubble {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        /* Bot message (left-aligned) */
+        .message.bot .message-bubble {
+            background: white;
+            color: #333;
+            border: 1px solid #e0e0e0;
+        }
+
+        /* Message bubble styling */
+        .message-bubble {
+            padding: 12px 15px;
+            border-radius: 12px;
+            max-width: 75%;
+            word-wrap: break-word;
+            font-size: 13px;
+            line-height: 1.4;
+        }
+
+        /* Typing indicator - three dots animation */
+        .typing-indicator {
+            display: flex;
+            gap: 4px;
+            padding: 10px;
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #999;
+            animation: typing 1.4s infinite;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
+
+        @keyframes typing {
+            0%, 60%, 100% {
+                opacity: 0.5;
+                transform: translateY(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translateY(-10px);
+            }
+        }
+
+        /* Input area at the bottom of the widget */
+        .chatbot-input-area {
+            padding: 15px;
+            border-top: 1px solid #e0e0e0;
+            background: white;
+            border-radius: 0 0 12px 12px;
+        }
+
+        .chatbot-input-wrapper {
+            display: flex;
+            gap: 8px;
+            align-items: flex-end;
+        }
+
+        /* Text input field */
+        .chatbot-input {
+            flex: 1;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: inherit;
+            font-size: 13px;
+            resize: none;
+            max-height: 80px;
+            min-height: 40px;
+            transition: border-color 0.2s;
+        }
+
+        .chatbot-input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        /* Buttons in the input area */
+        .chatbot-button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            transition: all 0.2s;
+        }
+
+        .chatbot-button:hover {
+            transform: scale(1.05);
+        }
+
+        .chatbot-button:active {
+            transform: scale(0.95);
+        }
+
+        .chatbot-button.recording {
+            background: #ff6b6b;
+            animation: recordingPulse 1s infinite;
+        }
+
+        @keyframes recordingPulse {
+            0%, 100% {
+                box-shadow: 0 0 0 0 rgba(255, 107, 107, 0.7);
+            }
+            50% {
+                box-shadow: 0 0 0 10px rgba(255, 107, 107, 0);
+            }
+        }
+
+        /* Responsive design for mobile devices */
+        @media (max-width: 600px) {
+            .chatbot-widget {
+                width: calc(100vw - 40px);
+                height: 60vh;
+                bottom: 10px;
+                right: 10px;
+            }
+
+            .chatbot-bubble {
+                bottom: 10px;
+                right: 10px;
+                width: 56px;
+                height: 56px;
+                font-size: 24px;
+            }
+
+            .message-bubble {
+                max-width: 85%;
+            }
+
+            .demo-container {
+                padding: 20px;
+            }
+        }
+
+        /* Scrollbar styling for messages area */
+        .chatbot-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .chatbot-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .chatbot-messages::-webkit-scrollbar-thumb {
+            background: #ddd;
+            border-radius: 3px;
+        }
+
+        .chatbot-messages::-webkit-scrollbar-thumb:hover {
+            background: #bbb;
+        }
+    </style>
+</head>
+<body>
+    <!-- ============== MAIN DEMO PAGE ============== -->
+    <div class="demo-container">
+        <div class="demo-header">
+            <h1>🤖 RAG Voice Chatbot</h1>
+            
+        </div>
+
+        <!-- Document Management Section -->
+        <div class="demo-section">
+            <h2>📚 Knowledge Base Management</h2>
+            <div id="statusMessage"></div>
+            
+            <div class="document-form">
+                <div class="form-group">
+                    <label for="docSource">Document Source (e.g., Company Manual):</label>
+                    <input 
+                        type="text" 
+                        id="docSource" 
+                        placeholder="e.g., Company Policy, User Guide, FAQ"
+                        value="Sample Document"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="docContent">Document Content:</label>
+                    <textarea 
+                        id="docContent" 
+                        placeholder="Paste your document content here..."
+                    >Our company was founded in 2020 with a mission to revolutionize customer service through AI. We specialize in creating intelligent chatbots that understand natural language and context. Our product has helped over 500 companies improve their customer satisfaction by 40%. We offer 24/7 support, advanced analytics, and seamless integration with existing systems.</textarea>
+                </div>
+
+                <div class="button-group">
+                    <button class="btn-primary" onclick="uploadDocument()">Upload Document</button>
+                    <button class="btn-secondary" onclick="loadDocuments()">Refresh Documents</button>
+                </div>
+            </div>
+
+            <!-- PDF Upload Section -->
+            <div class="document-form" style="border-top: 2px dashed #ddd; margin-top: 15px;">
+                <div class="form-group">
+                    <label for="pdfUpload">📄 Upload PDF Document:</label>
+                    <input type="file" id="pdfUpload" accept=".pdf">
+                </div>
+                <div class="button-group">
+                    <button class="btn-primary" onclick="uploadPdf()">Upload PDF</button>
+                </div>
+            </div>
+
+            <!-- Documents List -->
+            <div id="documentsList" class="doc-list" style="display: none;">
+                <p style="text-align: center; color: #999; padding: 20px;">Loading documents...</p>
+            </div>
+        </div>
+
+        <!-- Chat Interface Section -->
+        <div class="demo-section">
+            <h2>💬 Test Chat Widget</h2>
+            <p style="color: #666; font-size: 13px; margin-bottom: 10px;">
+                Look at the bottom-right corner to see the chatbot widget. Try typing a message or using voice input!
+            </p>
+        </div>
+    </div>
+
+    <!-- ============== CHATBOT WIDGET (Bottom-Right) ============== -->
+    <div class="chatbot-widget" id="chatbotWidget">
+        <!-- Header with title and close button -->
+        <div class="chatbot-header">
+            <div>
+                <h3>Chat Assistant</h3>
+                <p>RAG-powered AI</p>
+            </div>
+            <button class="chatbot-close" onclick="toggleChatbot()">×</button>
+        </div>
+
+        <!-- Messages display area -->
+        <div class="chatbot-messages" id="chatbotMessages">
+            <div class="message bot">
+                <div class="message-bubble">
+                    👋 Hi! I'm your RAG-powered assistant. Ask me anything about the documents in our knowledge base!
+                </div>
+            </div>
+        </div>
+
+        <!-- Input area with text input and action buttons -->
+        <div class="chatbot-input-area">
+            <div class="chatbot-input-wrapper">
+                <!-- Text input field -->
+                <textarea 
+                    class="chatbot-input" 
+                    id="chatbotInput" 
+                    placeholder="Type your message... or use voice 🎤"
+                    onkeydown="handleInputKeypress(event)"
+                ></textarea>
+
+                <!-- Voice input button -->
+                <button 
+                    class="chatbot-button" 
+                    id="voiceButton" 
+                    onclick="toggleVoiceInput()"
+                    title="Click to start voice input"
+                >🎤</button>
+
+                <!-- Send message button -->
+                <button 
+                    class="chatbot-button" 
+                    onclick="sendMessage()"
+                    title="Send message"
+                >📤</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Floating bubble shown when widget is minimized -->
+    <div class="chatbot-bubble hidden" id="chatbotBubble" onclick="toggleChatbot()">💬</div>
+
+    <!-- ============== JAVASCRIPT ============== -->
+    <script>
+        // ============== CONFIGURATION ==============
+        // Backend API URL - change this if your backend is hosted elsewhere
+        const API_BASE_URL = 'http://localhost:5000';
+
+        // ============== STATE MANAGEMENT ==============
+        // Store the conversation history to send context to the AI
+        let conversationHistory = [];
+        let isListening = false;  // Track if voice input is active
+        let recognitionInstance = null;  // Web Speech API instance
+
+        // ============== INITIALIZATION ==============
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize Web Speech API for voice input
+            initializeSpeechRecognition();
+            
+            // Check if backend is running
+            checkBackendHealth();
+            
+            // Load existing documents on page load
+            setTimeout(loadDocuments, 500);
+
+            // Preload voices for speech synthesis (Chrome needs this)
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+            }
+        });
+
+        // ============== SPEECH RECOGNITION SETUP ==============
+        /**
+         * Initialize the Web Speech API for voice recognition
+         * This allows users to speak instead of typing
+         */
+        function initializeSpeechRecognition() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            
+            if (!SpeechRecognition) {
+                console.warn('Speech Recognition not supported in this browser');
+                document.getElementById('voiceButton').style.opacity = '0.5';
+                return;
+            }
+
+            // Create new recognizer instance
+            recognitionInstance = new SpeechRecognition();
+            
+            // Settings for speech recognition
+            recognitionInstance.continuous = false;  // Stop after one phrase
+            recognitionInstance.interimResults = true;  // Show results as user speaks
+            recognitionInstance.language = 'en-US';  // Set language
+
+            // Handle recognized speech
+            recognitionInstance.onresult = function(event) {
+                let transcript = '';
+                
+                // Process all results from the speech recognition
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    transcript += event.results[i][0].transcript;
+                }
+
+                // Update the input field with recognized speech
+                document.getElementById('chatbotInput').value = transcript;
+            };
+
+            // Handle errors in speech recognition
+            recognitionInstance.onerror = function(event) {
+                console.error('Speech recognition error:', event.error);
+                document.getElementById('voiceButton').classList.remove('recording');
+                isListening = false;
+            };
+
+            // Handle when recognition ends
+            recognitionInstance.onend = function() {
+                document.getElementById('voiceButton').classList.remove('recording');
+                isListening = false;
+            };
+        }
+
+        // ============== VOICE INPUT CONTROL ==============
+        /**
+         * Toggle voice input on/off
+         */
+        function toggleVoiceInput() {
+            if (!recognitionInstance) {
+                alert('Speech recognition not supported in your browser');
+                return;
+            }
+
+            const voiceButton = document.getElementById('voiceButton');
+
+            if (!isListening) {
+                // Start listening
+                recognitionInstance.start();
+                isListening = true;
+                voiceButton.classList.add('recording');
+            } else {
+                // Stop listening
+                recognitionInstance.stop();
+                isListening = false;
+                voiceButton.classList.remove('recording');
+            }
+        }
+
+        // ============== MESSAGE SENDING ==============
+        /**
+         * Send user message to the backend and get AI response
+         */
+        async function sendMessage() {
+            const input = document.getElementById('chatbotInput');
+            const message = input.value.trim();
+
+            // Don't send empty messages
+            if (!message) return;
+
+            // Clear input field
+            input.value = '';
+
+            // Add user message to UI immediately
+            addMessageToChat(message, 'user');
+
+            // Add to conversation history for context
+            conversationHistory.push({
+                role: 'user',
+                content: message
+            });
+
+            // Show typing indicator while waiting for response
+            showTypingIndicator();
+
+            try {
+                // Send message to backend
+                const response = await fetch(`${API_BASE_URL}/api/chat`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        history: conversationHistory
+                    })
+                });
+
+                // Parse response
+                const data = await response.json();
+
+                // Remove typing indicator
+                removeTypingIndicator();
+
+                if (data.success) {
+                    // Add AI response to UI
+                    addMessageToChat(data.response, 'bot');
+
+                    // Add to conversation history
+                    conversationHistory.push({
+                        role: 'assistant',
+                        content: data.response
+                    });
+
+                    // Speak the response (text-to-speech)
+                    speakResponse(data.response);
+                } else {
+                    // Show error message
+                    addMessageToChat(`Error: ${data.error}`, 'bot');
+                }
+            } catch (error) {
+                // Handle network or other errors
+                removeTypingIndicator();
+                addMessageToChat('Sorry, I could not connect to the backend. Is it running?', 'bot');
+                console.error('Error:', error);
+            }
+
+            // Focus back on input
+            input.focus();
+        }
+
+        // ============== MESSAGE UI FUNCTIONS ==============
+        /**
+         * Add a message to the chat display
+         * @param {string} content - The message text
+         * @param {string} role - 'user' or 'bot'
+         */
+        function addMessageToChat(content, role) {
+            const messagesContainer = document.getElementById('chatbotMessages');
+
+            // Create message element
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}`;
+
+            // Create message bubble
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'message-bubble';
+            bubbleDiv.textContent = content;
+
+            messageDiv.appendChild(bubbleDiv);
+            messagesContainer.appendChild(messageDiv);
+
+            // Auto-scroll to latest message
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        /**
+         * Show typing indicator while waiting for response
+         */
+        function showTypingIndicator() {
+            const messagesContainer = document.getElementById('chatbotMessages');
+            const typingDiv = document.createElement('div');
+            typingDiv.className = 'message bot';
+            typingDiv.id = 'typingIndicator';
+            typingDiv.innerHTML = '<div class="typing-indicator"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>';
+            messagesContainer.appendChild(typingDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        /**
+         * Remove typing indicator
+         */
+        function removeTypingIndicator() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            if (typingIndicator) {
+                typingIndicator.remove();
+            }
+        }
+
+        // ============== TEXT-TO-SPEECH ==============
+        /**
+         * Use browser's text-to-speech to read the response aloud
+         * @param {string} text - The text to speak
+         */
+        function speakResponse(text) {
+            if (!('speechSynthesis' in window)) return;
+
+            window.speechSynthesis.cancel();
+
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.rate = 1.0;
+            utterance.pitch = 1.0;
+            utterance.volume = 1.0;
+
+            // Pick a voice if available (avoids silent failures on some browsers)
+            const voices = window.speechSynthesis.getVoices();
+            if (voices.length > 0) {
+                utterance.voice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+            }
+
+            utterance.onerror = (e) => console.error('Speech error:', e);
+
+            // Small timeout helps some browsers (Chrome) trigger speech
+            setTimeout(() => window.speechSynthesis.speak(utterance), 50);
+        }
+
+        // ============== INPUT HANDLING ==============
+        /**
+         * Handle Enter key in input field to send message
+         * @param {KeyboardEvent} event - The keyboard event
+         */
+        function handleInputKeypress(event) {
+            // Send on Enter, allow Shift+Enter for new line
+            if (event.key === 'Enter' && !event.shiftKey) {
+                event.preventDefault();
+                sendMessage();
+            }
+        }
+
+        // ============== DOCUMENT MANAGEMENT ==============
+        /**
+         * Upload a new document to the knowledge base
+         */
+        async function uploadDocument() {
+            const source = document.getElementById('docSource').value;
+            const content = document.getElementById('docContent').value;
+
+            if (!source || !content) {
+                showStatus('Please fill in both fields', 'error');
+                return;
+            }
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/upload-documents`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        documents: [{ source, content }]
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus(`✓ ${data.message}`, 'success');
+                    document.getElementById('docContent').value = '';
+                    document.getElementById('docSource').value = '';
+                    setTimeout(loadDocuments, 500);
+                } else {
+                    showStatus(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('Error uploading document', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        /**
+         * Upload a PDF file to the knowledge base
+         */
+        async function uploadPdf() {
+            const fileInput = document.getElementById('pdfUpload');
+            const file = fileInput.files[0];
+
+            if (!file) {
+                showStatus('Please select a PDF file', 'error');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                showStatus('File too large — max 10MB', 'error');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/upload-pdf`, {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus(`✓ ${data.message}`, 'success');
+                    fileInput.value = '';
+                    setTimeout(loadDocuments, 500);
+                } else {
+                    showStatus(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('Error uploading PDF', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        /**
+         * Load and display all documents in the knowledge base
+         */
+        async function loadDocuments() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/get-documents`);
+                const data = await response.json();
+
+                const documentsList = document.getElementById('documentsList');
+
+                if (data.success && data.count > 0) {
+                    documentsList.innerHTML = '';
+                    documentsList.style.display = 'block';
+
+                    // Display each document
+                    for (let i = 0; i < data.documents.ids.length; i++) {
+                        const docId = data.documents.ids[i];
+                        const docContent = data.documents.documents[i];
+                        const docMeta = data.documents.metadatas[i];
+
+                        const docItem = document.createElement('div');
+                        docItem.className = 'doc-item';
+                        docItem.innerHTML = `
+                            <div class="doc-item-content">
+                                <span class="doc-item-source">📄 ${docMeta.source}</span>
+                                <div class="doc-item-text">${docContent}</div>
+                            </div>
+                            <button class="doc-item-delete" onclick="deleteDocument('${docId}')">Delete</button>
+                        `;
+                        documentsList.appendChild(docItem);
+                    }
+
+                    showStatus(`✓ Loaded ${data.count} documents`, 'info');
+                } else {
+                    documentsList.innerHTML = '<p style="text-align: center; color: #999; padding: 20px;">No documents in knowledge base yet. Upload one to get started!</p>';
+                    documentsList.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Error loading documents:', error);
+            }
+        }
+
+        /**
+         * Delete a document from the knowledge base
+         * @param {string} docId - The document ID to delete
+         */
+        async function deleteDocument(docId) {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/delete-documents`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ doc_ids: [docId] })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus(data.message, 'success');
+                    setTimeout(loadDocuments, 500);
+                } else {
+                    showStatus(`Error: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showStatus('Error deleting document', 'error');
+                console.error('Error:', error);
+            }
+        }
+
+        // ============== UTILITY FUNCTIONS ==============
+        /**
+         * Show status messages to the user
+         * @param {string} message - The message to display
+         * @param {string} type - 'success', 'error', or 'info'
+         */
+        function showStatus(message, type) {
+            const statusDiv = document.getElementById('statusMessage');
+            statusDiv.textContent = message;
+            statusDiv.className = `status-message status-${type}`;
+
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                statusDiv.textContent = '';
+                statusDiv.className = '';
+            }, 5000);
+        }
+
+        /**
+         * Check if the backend is running
+         */
+        async function checkBackendHealth() {
+            try {
+                const response = await fetch(`${API_BASE_URL}/api/health`);
+                const data = await response.json();
+                console.log('✓ Backend is running:', data.status);
+            } catch (error) {
+                console.warn('⚠ Backend is not running. Make sure to start it with: python backend/app.py');
+                showStatus('⚠ Backend is not running', 'error');
+            }
+        }
+
+        /**
+         * Toggle chatbot widget visibility
+         */
+        function toggleChatbot() {
+            const widget = document.getElementById('chatbotWidget');
+            const bubble = document.getElementById('chatbotBubble');
+            widget.classList.toggle('minimized');
+            bubble.classList.toggle('hidden');
+        }
+    </script>
+</body>
+</html>
