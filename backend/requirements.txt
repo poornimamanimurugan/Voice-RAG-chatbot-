@@ -10,11 +10,20 @@ openai==2.43.0
 # Chroma DB for vector storage and embeddings
 chromadb==0.4.24
 
+# Numerical computing (dependency of chromadb, used for semantic similarity)
+numpy<2.0
+
+# Cross-encoder reranker for improved retrieval quality
+sentence-transformers<3.0
+
 # Environment variable management
 python-dotenv==1.0.0
 
 # Additional dependencies that Chroma DB needs
 pydantic==2.5.0
+
+# Rate limiting for API endpoints (login, chat)
+Flask-Limiter==3.7.0
 
 # PDF text extraction
 pdfplumber==0.11.10
