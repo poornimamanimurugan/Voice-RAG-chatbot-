@@ -128,7 +128,7 @@ For detailed setup with troubleshooting, see [SETUP_INSTRUCTIONS.md](./SETUP_INS
 1. **Frontend**: Captures message from text input or voice
 2. **Backend**: Receives message via POST /api/chat
 3. **Backend**: Searches Chroma DB for relevant documents
-4. **Backend**: Calls Claude AI with context + message
+4. **Backend**: Calls Groq with context + message
 5. **Claude**: Generates intelligent response
 6. **Frontend**: Displays response and reads it aloud
 
@@ -227,7 +227,6 @@ Solution: Backend already has CORS enabled, restart server
 ## 📚 Documentation
 
 - [Setup Instructions](./SETUP_INSTRUCTIONS.md) - Detailed setup guide
-- [Anthropic API Docs](https://docs.anthropic.com/) - Claude API reference
 - [Chroma DB Docs](https://docs.trychroma.com/) - Vector database guide
 - [Flask Docs](https://flask.palletsprojects.com/) - Backend framework
 
