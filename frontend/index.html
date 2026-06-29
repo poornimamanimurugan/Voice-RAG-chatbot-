@@ -547,18 +547,179 @@
         .chatbot-messages::-webkit-scrollbar-thumb:hover {
             background: #bbb;
         }
+        /* ============== LOGIN PAGE STYLES ============== */
+        .login-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+        }
+
+        .login-overlay.hidden {
+            display: none;
+        }
+
+        .login-box {
+            background: white;
+            border-radius: 12px;
+            padding: 40px;
+            width: 360px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        }
+
+        .login-box h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 5px;
+            font-size: 24px;
+        }
+
+        .login-box p {
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+            margin-bottom: 25px;
+        }
+
+        .login-box .form-group {
+            margin-bottom: 15px;
+        }
+
+        .login-box .form-group label {
+            display: block;
+            font-size: 13px;
+            font-weight: 500;
+            color: #333;
+            margin-bottom: 5px;
+        }
+
+        .login-box .form-group input {
+            width: 100%;
+            padding: 10px 12px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+        }
+
+        .login-box .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .login-box .btn-primary {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+        }
+
+        .login-error {
+            color: #721c24;
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 13px;
+            margin-bottom: 10px;
+            display: none;
+        }
+
+        .login-error.visible {
+            display: block;
+        }
+
+        .auth-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0;
+        }
+
+        .auth-bar .user-info {
+            font-size: 13px;
+            color: #666;
+        }
+
+        .auth-bar .user-info strong {
+            color: #333;
+        }
+
+        .auth-bar .btn-logout {
+            background: #f0f0f0;
+            color: #333;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .auth-bar .btn-logout:hover {
+            background: #e0e0e0;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-left: 5px;
+        }
+
+        /* Hide admin sections for non-admin */
+        .admin-only {
+            display: block;
+        }
+
+        .admin-only.hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <!-- ============== MAIN DEMO PAGE ============== -->
-    <div class="demo-container">
+    <!-- ============== LOGIN OVERLAY ============== -->
+    <div class="login-overlay" id="loginOverlay">
+        <div class="login-box">
+            <h1>RAG Voice Chatbot</h1>
+            <p>Sign in to continue</p>
+            <div class="login-error" id="loginError">Invalid credentials</div>
+            <div class="form-group">
+                <label for="loginUsername">Username</label>
+                <input type="text" id="loginUsername" placeholder="admin or user" autocomplete="username">
+            </div>
+            <div class="form-group">
+                <label for="loginPassword">Password</label>
+                <input type="password" id="loginPassword" placeholder="••••••" autocomplete="current-password" onkeydown="if(event.key==='Enter') doLogin()">
+            </div>
+            <button class="btn-primary" onclick="doLogin()">Sign In</button>
+        </div>
+    </div>
+
+    <!-- ============== MAIN APP (Hidden until login) ============== -->
+    <div id="mainApp" style="display: none;">
+        <div class="auth-bar">
+            <div class="user-info">
+                Logged in as <strong id="displayUsername"></strong> <span class="admin-badge" id="displayRole"></span>
+            </div>
+            <button class="btn-logout" onclick="doLogout()">Sign Out</button>
+        </div>
+
+        <!-- ============== MAIN DEMO PAGE ============== -->
+        <div class="demo-container">
         <div class="demo-header">
             <h1>🤖 RAG Voice Chatbot</h1>
             
         </div>
 
-        <!-- Document Management Section -->
-        <div class="demo-section">
+        <!-- Document Management Section (Admin only) -->
+        <div class="demo-section admin-only">
             <h2>📚 Knowledge Base Management</h2>
             <div id="statusMessage"></div>
             
@@ -677,23 +838,83 @@
         let isListening = false;  // Track if voice input is active
         let recognitionInstance = null;  // Web Speech API instance
 
-        // ============== INITIALIZATION ==============
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Web Speech API for voice input
-            initializeSpeechRecognition();
-            
-            // Check if backend is running
-            checkBackendHealth();
-            
-            // Load existing documents on page load
-            setTimeout(loadDocuments, 500);
+        // ============== AUTH FUNCTIONS ==============
 
-            // Preload voices for speech synthesis (Chrome needs this)
-            if ('speechSynthesis' in window) {
-                window.speechSynthesis.getVoices();
-                window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+        async function checkAuth() {
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/me`, { credentials: 'include' });
+                const data = await res.json();
+                if (data.authenticated) {
+                    document.getElementById('loginOverlay').classList.add('hidden');
+                    document.getElementById('mainApp').style.display = 'block';
+                    document.getElementById('displayUsername').textContent = data.user.username;
+                    const roleBadge = document.getElementById('displayRole');
+                    if (data.user.role === 'admin') {
+                        roleBadge.textContent = 'Admin';
+                        roleBadge.style.display = 'inline-block';
+                    } else {
+                        roleBadge.style.display = 'none';
+                    }
+                    document.querySelectorAll('.admin-only').forEach(el => {
+                        el.classList.toggle('hidden', data.user.role !== 'admin');
+                    });
+                } else {
+                    document.getElementById('loginOverlay').classList.remove('hidden');
+                    document.getElementById('mainApp').style.display = 'none';
+                }
+            } catch (e) {
+                document.getElementById('loginOverlay').classList.remove('hidden');
+                document.getElementById('mainApp').style.display = 'none';
             }
-        });
+        }
+
+        async function doLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            const errorDiv = document.getElementById('loginError');
+
+            if (!username || !password) {
+                errorDiv.textContent = 'Please enter username and password';
+                errorDiv.classList.add('visible');
+                return;
+            }
+
+            try {
+                const res = await fetch(`${API_BASE_URL}/api/login`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ username, password })
+                });
+                const data = await res.json();
+                if (data.success) {
+                    errorDiv.classList.remove('visible');
+                    await checkAuth();
+                    initializeSpeechRecognition();
+                    checkBackendHealth();
+                    setTimeout(loadDocuments, 500);
+                    if ('speechSynthesis' in window) {
+                        window.speechSynthesis.getVoices();
+                        window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+                    }
+                } else {
+                    errorDiv.textContent = data.error || 'Invalid credentials';
+                    errorDiv.classList.add('visible');
+                }
+            } catch (e) {
+                errorDiv.textContent = 'Could not connect to server';
+                errorDiv.classList.add('visible');
+            }
+        }
+
+        async function doLogout() {
+            await fetch(`${API_BASE_URL}/api/logout`, {
+                method: 'POST',
+                credentials: 'include'
+            });
+            document.getElementById('loginOverlay').classList.remove('hidden');
+            document.getElementById('mainApp').style.display = 'none';
+        }
 
         // ============== SPEECH RECOGNITION SETUP ==============
         /**
@@ -799,6 +1020,7 @@
                 // Send message to backend
                 const response = await fetch(`${API_BASE_URL}/api/chat`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -900,19 +1122,20 @@
             window.speechSynthesis.cancel();
 
             const utterance = new SpeechSynthesisUtterance(text);
-            utterance.rate = 1.0;
+            utterance.rate = 0.9;
             utterance.pitch = 1.0;
             utterance.volume = 1.0;
 
-            // Pick a voice if available (avoids silent failures on some browsers)
             const voices = window.speechSynthesis.getVoices();
             if (voices.length > 0) {
-                utterance.voice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+                utterance.voice = voices.find(v => v.name === 'Samantha')
+                    || voices.find(v => v.lang.startsWith('en') && v.name.includes('Female'))
+                    || voices.find(v => v.lang.startsWith('en'))
+                    || voices[0];
             }
 
             utterance.onerror = (e) => console.error('Speech error:', e);
 
-            // Small timeout helps some browsers (Chrome) trigger speech
             setTimeout(() => window.speechSynthesis.speak(utterance), 50);
         }
 
@@ -945,6 +1168,7 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/api/upload-documents`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -992,6 +1216,7 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/api/upload-pdf`, {
                     method: 'POST',
+                    credentials: 'include',
                     body: formData
                 });
 
@@ -1015,7 +1240,7 @@
          */
         async function loadDocuments() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/get-documents`);
+                const response = await fetch(`${API_BASE_URL}/api/get-documents`, { credentials: 'include' });
                 const data = await response.json();
 
                 const documentsList = document.getElementById('documentsList');
@@ -1060,6 +1285,7 @@
             try {
                 const response = await fetch(`${API_BASE_URL}/api/delete-documents`, {
                     method: 'POST',
+                    credentials: 'include',
                     headers: {
                         'Content-Type': 'application/json',
                     },
@@ -1103,7 +1329,7 @@
          */
         async function checkBackendHealth() {
             try {
-                const response = await fetch(`${API_BASE_URL}/api/health`);
+                const response = await fetch(`${API_BASE_URL}/api/health`, { credentials: 'include' });
                 const data = await response.json();
                 console.log('✓ Backend is running:', data.status);
             } catch (error) {
@@ -1121,6 +1347,22 @@
             widget.classList.toggle('minimized');
             bubble.classList.toggle('hidden');
         }
+        
+        /**
+         * Initialize auth state on page load
+         */
+        document.addEventListener('DOMContentLoaded', async function() {
+            await checkAuth();
+            initializeSpeechRecognition();
+            checkBackendHealth();
+            setTimeout(loadDocuments, 500);
+
+            if ('speechSynthesis' in window) {
+                window.speechSynthesis.getVoices();
+                window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+            }
+        });
     </script>
+</div><!-- end mainApp -->
 </body>
 </html>
