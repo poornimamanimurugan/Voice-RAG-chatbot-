@@ -40,13 +40,13 @@ rag-voice-chatbot/
 - Runs the Flask web server on port 5000
 - Implements all API endpoints for the chatbot
 - Integrates with Chroma DB for vector storage
-- Connects to Claude API for AI responses
+- Connects to Groq API for AI responses
 - Handles RAG (document search + AI generation)
 
 **Key functions:**
 - `get_relevant_documents()` - Searches Chroma DB
 - `build_rag_context()` - Prepares context for AI
-- `generate_response()` - Calls Claude API
+- `generate_response()` - Calls Groq API
 - `/api/chat` - Main chat endpoint
 - `/api/upload-documents` - Add documents
 - `/api/get-documents` - Retrieve documents
@@ -68,7 +68,7 @@ rag-voice-chatbot/
 **Contains:**
 - Flask (web framework)
 - Flask-CORS (cross-origin requests)
-- Anthropic SDK (Claude API)
+- OpenAI SDK (Groq API - OpenAI compatible)
 - Chroma DB (vector database)
 - Python-dotenv (environment variables)
 

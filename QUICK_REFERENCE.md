@@ -9,7 +9,7 @@ python -m venv venv
 # Windows: venv\Scripts\activate
 # Mac/Linux: source venv/bin/activate
 pip install -r requirements.txt
-# Create .env with: ANTHROPIC_API_KEY=your_key
+# Create .env with: GROQ_API_KEY=your_key
 python app.py
 
 # Terminal 2: Frontend (NEW TERMINAL!)
@@ -87,7 +87,7 @@ curl http://localhost:8000
 - [ ] Virtual environment created and activated
 - [ ] `requirements.txt` installed
 - [ ] `.env` file created in `backend/` folder
-- [ ] `ANTHROPIC_API_KEY` set in `.env`
+- [ ] `GROQ_API_KEY` set in `.env`
 - [ ] Backend started with `python app.py`
 - [ ] Frontend started with `python -m http.server 8000`
 - [ ] Browser opened to `http://localhost:8000`
@@ -138,12 +138,12 @@ source venv/bin/activate
 ls backend/.env  # Mac/Linux
 dir backend\.env  # Windows
 
-# Check contents (should have ANTHROPIC_API_KEY=...)
+# Check contents (should have GROQ_API_KEY=...)
 cat backend/.env  # Mac/Linux
 type backend\.env  # Windows
 
 # If using Windows PowerShell with special characters, try:
-$env:ANTHROPIC_API_KEY="your_key_here"
+$env:GROQ_API_KEY="your_key_here"
 ```
 
 ### Import Errors
@@ -269,7 +269,7 @@ fetch('http://localhost:5000/api/health')
 
 # Example good output:
 # [2024-01-20 10:30:00] Searching Chroma DB...
-# [2024-01-20 10:30:01] Calling Claude API...
+# [2024-01-20 10:30:01] Calling Groq API...
 # [2024-01-20 10:30:02] Response generated successfully
 ```
 
@@ -347,17 +347,12 @@ Before deploying to production:
 
 ## 💰 Cost Estimates
 
-### Anthropic Claude API
-- **Per 1000 tokens input:** $0.003 (varies by model)
-- **Per 1000 tokens output:** $0.015
-- **Free tier:** $5 credits to start
+### Groq (llama-3.1-8b-instant)
+- **Free tier:** Groq offers free API usage via console.groq.com
+- **Pricing:** Pay-per-token (check current rates at console.groq.com)
+- **Rate limits:** 30 requests/minute on free tier
 
-### Typical Costs
-- 1 short message exchange: $0.01-$0.05
-- 100 conversations: $1-$5
-- 1000 conversations: $10-$50
-
-**Pro tip:** Monitor usage at [console.anthropic.com](https://console.anthropic.com/)
+**Pro tip:** Monitor usage at [console.groq.com](https://console.groq.com/)
 
 ---
 
@@ -391,7 +386,7 @@ Before deploying to production:
 - Code comments: Check `app.py` and `index.html`
 
 ### Resources
-- [Anthropic Docs](https://docs.anthropic.com/)
+- [Groq Docs](https://console.groq.com/docs/)
 - [Flask Documentation](https://flask.palletsprojects.com/)
 - [Chroma DB Guide](https://docs.trychroma.com/)
 - [MDN Web Docs](https://developer.mozilla.org/)
@@ -435,7 +430,7 @@ Once setup is complete, try these quick wins:
 
 - Save this file for quick reference
 - Bookmark the documentation links
-- Bookmark `console.anthropic.com` for API monitoring
+- Bookmark `console.groq.com` for API monitoring
 - Keep your API key secure (never share it)
 
 ---

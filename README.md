@@ -11,7 +11,7 @@ A production-ready Retrieval-Augmented Generation (RAG) chatbot with voice capab
 - **🎤 Voice Input & Output**: Speak to the chatbot using Web Speech API
 - **📚 RAG (Retrieval-Augmented Generation)**: Chatbot answers based on your documents
 - **🔍 Smart Search**: Semantic search using Chroma DB embeddings
-- **🤖 Claude AI**: Powered by Anthropic's Claude for intelligent responses
+- **🤖 Groq AI**: Powered by Groq's Llama 3.1 8B for intelligent responses
 - **💬 Chat Widget**: Sleek bottom-left corner widget that stays accessible
 - **📱 Responsive Design**: Works on desktop and mobile
 - **🔄 Conversation History**: Maintains context across multiple messages
@@ -48,7 +48,7 @@ rag-voice-chatbot/
 
 ### Prerequisites
 - Python 3.8+
-- Anthropic API Key (free at console.anthropic.com)
+- Groq API Key (free at console.groq.com)
 - Modern web browser (Chrome, Edge, Safari)
 
 ### 1. Install Backend Dependencies
@@ -62,7 +62,7 @@ pip install -r requirements.txt
 ### 2. Configure API Key
 Create `backend/.env`:
 ```
-ANTHROPIC_API_KEY=your_key_here
+GROQ_API_KEY=your_key_here
 ```
 
 ### 3. Start Backend Server
@@ -96,7 +96,7 @@ For detailed setup with troubleshooting, see [SETUP_INSTRUCTIONS.md](./SETUP_INS
 **Core Features:**
 - RESTful API endpoints for chat, document upload, and retrieval
 - Chroma DB integration for semantic search
-- Claude AI integration for response generation
+- Groq AI integration for response generation
 - CORS enabled for frontend communication
 
 **Main Endpoints:**
@@ -128,8 +128,8 @@ For detailed setup with troubleshooting, see [SETUP_INSTRUCTIONS.md](./SETUP_INS
 1. **Frontend**: Captures message from text input or voice
 2. **Backend**: Receives message via POST /api/chat
 3. **Backend**: Searches Chroma DB for relevant documents
-4. **Backend**: Calls Groq with context + message
-5. **Claude**: Generates intelligent response
+4. **Backend**: Calls Groq AI with context + message
+5. **Groq**: Generates intelligent response
 6. **Frontend**: Displays response and reads it aloud
 
 ```
@@ -141,7 +141,7 @@ User Input
     ↓
 [Chroma DB] 🔍 (search for relevant docs)
     ↓
-[Claude API] 🤖 (generate response)
+[Groq API] 🤖 (generate response)
     ↓ (JSON response)
 [Frontend] 💬 (display & speak)
     ↓
@@ -215,7 +215,7 @@ Solution: Use Chrome/Edge, check microphone permissions
 ### API Key invalid
 ```
 Error: 401 Unauthorized
-Solution: Check key at console.anthropic.com, make sure it's set in .env
+Solution: Check key at console.groq.com, make sure it's set in .env
 ```
 
 ### CORS errors
@@ -227,6 +227,7 @@ Solution: Backend already has CORS enabled, restart server
 ## 📚 Documentation
 
 - [Setup Instructions](./SETUP_INSTRUCTIONS.md) - Detailed setup guide
+- [Groq API Docs](https://console.groq.com/docs/) - Groq API reference
 - [Chroma DB Docs](https://docs.trychroma.com/) - Vector database guide
 - [Flask Docs](https://flask.palletsprojects.com/) - Backend framework
 
@@ -235,7 +236,7 @@ Solution: Backend already has CORS enabled, restart server
 ### Antigravity
 ```bash
 # Set environment variables in Antigravity dashboard
-ANTHROPIC_API_KEY=your_key
+GROQ_API_KEY=your_key
 
 # Deploy backend
 antigravity deploy
@@ -246,7 +247,7 @@ antigravity deploy
 ### Heroku
 ```bash
 heroku create app-name
-heroku config:set ANTHROPIC_API_KEY=your_key
+heroku config:set GROQ_API_KEY=your_key
 git push heroku main
 ```
 
@@ -329,7 +330,7 @@ MIT License - Use freely for personal and commercial projects
 ## 🙏 Acknowledgments
 
 - Built with [Flask](https://flask.palletsprojects.com/)
-- AI powered by [Anthropic Claude](https://www.anthropic.com/)
+- AI powered by [Groq](https://groq.com/)
 - Vector search by [Chroma DB](https://www.trychroma.com/)
 - Voice powered by [Web Speech API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API)
 

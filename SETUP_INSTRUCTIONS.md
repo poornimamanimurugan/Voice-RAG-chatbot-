@@ -2,7 +2,7 @@
 
 ## 📋 Overview
 This is a full-stack RAG (Retrieval-Augmented Generation) voice chatbot with:
-- **Backend**: Python Flask server with Claude AI integration
+- **Backend**: Python Flask server with Groq AI integration
 - **Frontend**: HTML/CSS/JavaScript with a bottom-left corner widget
 - **Database**: Chroma DB for vector storage and semantic search
 - **Voice**: Web Speech API for voice input/output
@@ -19,10 +19,10 @@ Before you start, make sure you have:
 2. **pip** (Python package manager - comes with Python)
    - Verify: `pip --version`
 
-3. **Anthropic API Key** 
-   - Go to [console.anthropic.com](https://console.anthropic.com/)
+3. **Groq API Key** 
+   - Go to [console.groq.com](https://console.groq.com/)
    - Sign up or log in
-   - Create a new API key under "API Keys"
+   - Create a new API key
    - Copy it (you'll need it later)
 
 4. **A web browser** that supports:
@@ -89,13 +89,13 @@ pip install -r requirements.txt
 This installs:
 - Flask (web framework)
 - Flask-CORS (cross-origin requests)
-- Anthropic SDK (Claude API)
+- OpenAI SDK (Groq API - OpenAI compatible)
 - Chroma DB (vector database)
 - Python-dotenv (environment variables)
 
 **Expected Output:**
 ```
-Successfully installed anthropic-0.25.7 chromadb-0.4.24 flask-3.0.0 ...
+Successfully installed openai chromadb flask ...
 ```
 
 #### 2.4 Configure Your API Key
@@ -105,28 +105,28 @@ Successfully installed anthropic-0.25.7 chromadb-0.4.24 flask-3.0.0 ...
 1. Create a new file named `.env` in the `backend/` folder
 2. Copy the content from `.env.example`:
    ```
-   ANTHROPIC_API_KEY=your_api_key_here
+   GROQ_API_KEY=your_api_key_here
    FLASK_ENV=development
    FLASK_DEBUG=True
    BACKEND_URL=http://localhost:5000
    ```
-3. Replace `your_api_key_here` with your actual API key from console.anthropic.com
+3. Replace `your_api_key_here` with your actual API key from console.groq.com
 
 **Option B: Set as environment variable**
 
 *Windows (Command Prompt):*
 ```bash
-set ANTHROPIC_API_KEY=your_api_key_here
+set GROQ_API_KEY=your_api_key_here
 ```
 
 *Windows (PowerShell):*
 ```bash
-$env:ANTHROPIC_API_KEY="your_api_key_here"
+$env:GROQ_API_KEY="your_api_key_here"
 ```
 
 *macOS/Linux:*
 ```bash
-export ANTHROPIC_API_KEY="your_api_key_here"
+export GROQ_API_KEY="your_api_key_here"
 ```
 
 ### Step 3: Start the Backend Server
@@ -203,7 +203,7 @@ In a **new terminal/command prompt window** (keep the backend running):
 4. The AI will:
    - Search the knowledge base (Chroma DB)
    - Retrieve relevant documents
-   - Generate a response using Claude AI
+   - Generate a response using Groq AI (llama-3.1-8b-instant)
    - Speak the response using text-to-speech
 
 ### 5.3 Test Voice Input
@@ -221,8 +221,8 @@ In a **new terminal/command prompt window** (keep the backend running):
 ### Backend Configuration (.env file)
 
 ```ini
-# Your Anthropic API key (required)
-ANTHROPIC_API_KEY=sk-ant-...
+# Your Groq API key (required)
+GROQ_API_KEY=gsk_...
 
 # Flask settings
 FLASK_ENV=development          # Use 'production' for deployment
@@ -253,7 +253,7 @@ Change it if your backend is on a different URL.
 
 ### Problem: API Key Error
 **Solution:**
-- Double-check your API key is correct and active in console.anthropic.com
+- Double-check your API key is correct and active in console.groq.com
 - Make sure the `.env` file is in the same folder as `app.py`
 - Restart the Flask server after changing the API key
 
@@ -285,7 +285,7 @@ Change it if your backend is on a different URL.
 |----------|---------|
 | `get_relevant_documents()` | Searches Chroma DB for relevant documents |
 | `build_rag_context()` | Formats retrieved documents for the AI |
-| `generate_response()` | Calls Claude API with RAG context |
+| `generate_response()` | Calls Groq API with RAG context |
 | `/api/chat` | Main endpoint for chatting |
 | `/api/upload-documents` | Endpoint for adding documents to knowledge base |
 | `/api/get-documents` | Retrieve all documents |
@@ -321,20 +321,20 @@ Change it if your backend is on a different URL.
    - Change `API_BASE_URL` in index.html to your production backend URL
 
 4. **Set Environment Variables:**
-   - In Antigravity, set `ANTHROPIC_API_KEY` as an environment variable
+   - In Antigravity, set `GROQ_API_KEY` as an environment variable
 
 ### Using Other Platforms
 
 **Heroku:**
 ```bash
 heroku create your-app-name
-heroku config:set ANTHROPIC_API_KEY=your_key
+heroku config:set GROQ_API_KEY=your_key
 git push heroku main
 ```
 
 **Railway.app:**
 - Connect your GitHub repo
-- Add `ANTHROPIC_API_KEY` in variables
+- Add `GROQ_API_KEY` in variables
 - Deploy automatically
 
 **Render:**
@@ -425,7 +425,7 @@ Remove documents from the knowledge base.
 ## 🎓 Learning Resources
 
 - **Flask Documentation**: https://flask.palletsprojects.com/
-- **Anthropic API Docs**: https://docs.anthropic.com/
+- **Groq API Docs**: https://console.groq.com/docs/
 - **Chroma DB Docs**: https://docs.trychroma.com/
 - **Web Speech API**: https://developer.mozilla.org/en-US/docs/Web/API/Web_Speech_API
 
@@ -434,7 +434,7 @@ Remove documents from the knowledge base.
 ## 💡 Tips & Best Practices
 
 1. **Large Documents**: For very large documents, split them into chunks before uploading
-2. **API Costs**: Monitor your Claude API usage to avoid unexpected bills
+2. **API Costs**: Monitor your Groq API usage to avoid unexpected bills
 3. **Security**: Never commit your `.env` file with real API keys
 4. **Performance**: The chatbot uses Cosine similarity for fast semantic search
 5. **Customization**: Edit the CSS in index.html to change colors and widget size
